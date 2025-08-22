@@ -33,4 +33,39 @@ describe('Endpoints', () => {
             expect(response.body[0]).toEqual(expect.objectContaining(dogs[0]));
         });
     });
+
+    describe('POST /dogs', () => {
+        it('should return dog data that matches the data in testDogData', async () => {
+            const response = await request(app)
+                .post('/dogs')
+                .send(testDogData);
+
+            expect(response.status).toBe(200);
+            expect(response.body).toEqual(expect.objectContaining(testDogData)) 
+        })
+
+        it('should create the dog in the database', async () => {
+            const response = await request(app)
+                .post('/dogs')
+                .send(testDogData);
+
+            const createdDog = await Dog.findByPk(response.body.id);
+            expect(createdDog).toBeTruthy();
+            expect(createdDog.name).toBe(testDogData.name);
+        });
+
+    })
+
+    describe('DELETE /dogs/:id', () => {
+        it('should delete dog with id 1', async () => {
+            // delete dog
+            const response = await request(app).delete('/dogs/1');
+            expect(response.status).toBe(200);
+            expect(response.text).toMatch(/deleted dog with id 1/);
+
+            // query db to confirm
+            const remainingDogs = await Dog.findAll({ where: { id: 1 } });
+            expect(remainingDogs).toEqual([]);  // should be empty
+        });
+    });
 });
